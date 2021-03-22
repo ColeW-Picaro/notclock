@@ -37,66 +37,66 @@ const std::string nine = "██████\n██  ██\n██████
 // rows: 5, cols: 3
 const std::string colon = "██\n\n\n\n██";
 
-std::map<char, std::string> numMap = { { '0', zero},
-                                       { '1', one },
-                                       { '2', two },
-                                       { '3', three },
-                                       { '4', four },
-                                       { '5', five },
-                                       { '6', six },
-                                       { '7', seven },
-                                       { '8', eight },
-                                       { '9', nine },
-                                       { ':', colon}};
+inline std::map<char, std::string> g_numMap = { { '0', zero},
+                                                       { '1', one },
+                                                       { '2', two },
+                                                       { '3', three },
+                                                       { '4', four },
+                                                       { '5', five },
+                                                       { '6', six },
+                                                       { '7', seven },
+                                                       { '8', eight },
+                                                       { '9', nine },
+                                                       { ':', colon}};
 
 // Constants specific for the clock
-const long NSEC = 200000000;
+inline extern const long NSEC = 200000000;
 
-const int clockRows = 7;
-const int clockCols = 32;
+inline extern const int CLOCK_ROWS = 7;
+inline extern const int CLOCK_COLS = 32;
 
-const int colonRows = 5;
-const int colonCols = 3;
+inline extern const int COLON_ROWS = 5;
+inline extern const int COLON_COLS = 3;
 
-const int numRows = 5;
-const int numCols = 7;
+inline extern const int NUM_ROWS = 5;
+inline extern const int NUM_COLS = 7;
 
 // Planes and nc objects
-ncpp::NotCurses* n;
-ncpp::Plane* clockPlane;
-ncpp::Visual* bgImage;
+extern ncpp::NotCurses* g_n;
+extern ncpp::Plane* g_clockPlane;
+extern ncpp::Visual* g_bgImage;
 
-std::vector<ncpp::Plane*>* planes = new std::vector<ncpp::Plane*> ();
+inline std::vector<ncpp::Plane*>* g_planes = new std::vector<ncpp::Plane*> ();
 
 // Function prototypes
-void
+extern void
 initPlanes ();
 
-void
+extern void
 initClockPlane ();
 
-void
+extern void
 initNumPlanes ();
 
-void
+extern void
 initBg (char* file);
 
-std::string
+extern std::string
 getTimeString ();
 
-int
+extern int
 putStringsOnPlanes (const std::vector<std::string>& strings);
 
-void
+extern void
 setFgPlanes ();
 
-void
+extern void
 setFgPlanes (unsigned color);
 
-void
+extern void
 processInput ();
 
-unsigned
+extern unsigned
 getColorInput ();
 
 

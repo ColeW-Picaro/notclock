@@ -22,44 +22,15 @@
 
 #include "Clock.hpp"
 
-int
-main(int argc, char *argv[]) {
-    setlocale(LC_ALL, "");
-    n = new ncpp::NotCurses (stdout);
-    // TODO: Resize handler
-    initPlanes();
-    if (argc == 2) {
-
-        initBg(argv[1]);
-    }
-
-    if (n) {
-        // Main render loop
-        while (n) {
-            std::string stdTimeString = getTimeString ();
-
-            // Write each string to its plane
-            std::vector<std::string> strings =
-                { numMap[stdTimeString[11]],
-                  numMap[stdTimeString[12]],
-                  numMap[stdTimeString[14]],
-                  numMap[stdTimeString[15]],
-                  numMap[stdTimeString[13]], };
-
-            putStringsOnPlanes(strings);
-            n->render();
-            processInput();
-        }
-    }
-
-    return EXIT_SUCCESS;
-}
+ncpp::NotCurses* g_n;
+ncpp::Plane* g_clockPlane;
+ncpp::Visual* g_bgImage;
 
 // Initialize global nc variables
 // n - the nc instance
 // clockPlane - the plane holding the clock
 // colonPlane - plane for the colon
-// planes - std::vector holding the clock planes
+// g_planes - std::vector holding the clock planes
 void
 initPlanes() {
     initClockPlane ();
@@ -68,17 +39,17 @@ initPlanes() {
 
 void
 initClockPlane () {
-    ncpp::Plane* stdplane = n->get_stdplane();
+    ncpp::Plane* stdplane = g_n->get_stdplane();
     int yMid = stdplane->get_dim_y() / 2;
     int xMid = stdplane->get_dim_x() / 2;
     ncplane_options clockOpts =
-        {.y = yMid - clockRows / 2,
-         .x = xMid - (clockCols / 2),
-         .rows = clockRows,
-         .cols = clockCols };
-    clockPlane = new ncpp::Plane (stdplane, clockOpts);
-    clockPlane->set_bg_alpha (CELL_ALPHA_OPAQUE);
-    clockPlane->set_fg_rgb (0x000000);
+        {.y = yMid - CLOCK_ROWS / 2,
+         .x = xMid - (CLOCK_COLS / 2),
+         .rows = CLOCK_ROWS,
+         .cols = CLOCK_COLS };
+    g_clockPlane = new ncpp::Plane (stdplane, clockOpts);
+    g_clockPlane->set_bg_alpha (CELL_ALPHA_OPAQUE);
+    g_clockPlane->set_fg_rgb (0x000000);
 }
 
 // Inits the planes on the clock plane
@@ -86,33 +57,33 @@ initClockPlane () {
 void
 initNumPlanes () {
     // Colon Plane
-    int colonX = clockPlane->get_dim_x() / 2 - 1;
+    int colonX = g_clockPlane->get_dim_x() / 2 - 1;
     ncplane_options colonOpts =
         { .y = 1,
           .x = colonX,
-          .rows = colonRows,
-          .cols = colonCols };
-    ncpp::Plane* colonPlane = new ncpp::Plane (clockPlane, colonOpts);
+          .rows = COLON_ROWS,
+          .cols = COLON_COLS };
+    ncpp::Plane* colonPlane = new ncpp::Plane (g_clockPlane, colonOpts);
 
     // Number planes
-    ncplane_options pOpts = { .y = 1, .x = colonX - (numCols * 2), .rows = numRows, .cols = numCols };
+    ncplane_options pOpts = { .y = 1, .x = colonX - (NUM_COLS * 2), .rows = NUM_ROWS, .cols = NUM_COLS };
     for (int i = 0; i < 4; ++i) {
-        planes->emplace_back (new ncpp::Plane (clockPlane, pOpts));
-        (*planes)[i]->set_bg_alpha (CELL_ALPHA_OPAQUE);
-        (*planes)[i]->set_fg_alpha (CELL_ALPHA_OPAQUE);
+        g_planes->emplace_back (new ncpp::Plane (g_clockPlane, pOpts));
+        (*g_planes)[i]->set_bg_alpha (CELL_ALPHA_OPAQUE);
+        (*g_planes)[i]->set_fg_alpha (CELL_ALPHA_OPAQUE);
         if (i == 1) {
-            pOpts.x += numCols + colonCols;
+            pOpts.x += NUM_COLS + COLON_COLS;
         } else {
-            pOpts.x += numCols;
+            pOpts.x += NUM_COLS;
         }
     }
-    planes->push_back (colonPlane);
+    g_planes->push_back (colonPlane);
 }
 
 void
 initBg (char* file) {
-    bgImage = new ncpp::Visual (file);
-    ncpp::Plane* stdplane = n->get_stdplane ();
+    g_bgImage = new ncpp::Visual (file);
+    ncpp::Plane* stdplane = g_n->get_stdplane ();
     struct ncvisual_options ncv_opts =
         { .n = stdplane->to_ncplane(),
           .scaling = NCSCALE_STRETCH,
@@ -120,8 +91,8 @@ initBg (char* file) {
           .begx = 0,
           .blitter = NCBLIT_1x1,
           .flags = NCVISUAL_OPTION_BLEND | NCVISUAL_OPTION_NODEGRADE, };
-    bgImage->render (&ncv_opts);
-    //ncv_opts.n = clockPlane->to_ncplane ();
+    g_bgImage->render (&ncv_opts);
+    //ncv_opts.n = g_clockPlane->to_ncplane ();
     //bgImage->render (&ncv_opts);
 }
 
@@ -138,8 +109,8 @@ std::string getTimeString() {
 // Call ncplane_putstr_yx on each of the planes and strings
 // planes and strings are the same size
 int putStringsOnPlanes (const std::vector<std::string>& strings) {
-    if (planes->size () != strings.size ()) return 0;
-    for (int i = 0; auto p : *planes) {
+    if (g_planes->size () != strings.size ()) return 0;
+    for (int i = 0; auto p : *g_planes) {
         p->putstr (0, 0, strings[i].c_str());
         ++i;
     }
@@ -148,7 +119,7 @@ int putStringsOnPlanes (const std::vector<std::string>& strings) {
 
 void
 setFgPlanes (unsigned color) {
-    for (auto p : *planes) {
+    for (auto p : *g_planes) {
         p->set_fg_rgb(color);
     }
 }
@@ -157,7 +128,7 @@ void
 processInput () {
     ncinput in;
     timespec time = { .tv_nsec = NSEC };
-    n->getc(&time, NULL, &in);
+    g_n->getc(&time, NULL, &in);
     if (in.id == 'c') {
         setFgPlanes(getColorInput ());
     }
@@ -170,17 +141,17 @@ unsigned
 getColorInput () {
     ncinput in;
     ncplane_options opts = { .y = 0, .x = 0, .rows = 1, .cols = 20};
-    ncpp::Plane* inputPlane = new ncpp::Plane (n->get_stdplane(), opts);
+    ncpp::Plane* inputPlane = new ncpp::Plane (g_n->get_stdplane(), opts);
     inputPlane->putstr ("hex color: #");
-    n->render();
+    g_n->render();
     std::string color;
-    while (n->getc (true, &in)) {
+    while (g_n->getc (true, &in)) {
         if((in.ctrl && in.id == 'D') || in.id == NCKEY_ENTER){
             break;
         }
         inputPlane->putc (in.id);
         color.push_back(in.id);
-        n->render ();
+        g_n->render ();
     }
     std::istringstream converter (color);
     unsigned value;
