@@ -9,7 +9,7 @@ I wanted to learn how to use notcurses, so I made a simple clock
 
 ## Installation
 
-1. Download (notcurses)[https://github.com/dankamongmen/notcurses]
+1. Download [notcurses](https://github.com/dankamongmen/notcurses)
 
 2. Clone this repo
 
