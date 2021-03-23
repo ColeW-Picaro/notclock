@@ -1,19 +1,19 @@
-CC = g++
-CFLAGS = -Wall -std=c++20
-OBJS = Clock.o Main.o
-SRCS = Main.cpp Clock.cpp
-LOCALLIBDIR = /usr/local/lib
-LDFLAGS = -L$(LOCALLIBDIR)
+CXX = g++
+CXXFLAGS = -Wall -std=c++20
+BUILDDIR=$(PWD)/build
+SRC=$(wildcard src/*.cpp)
+DEPS=$(wildcard include/*.hpp)
+INCLUDE= -Iinclude
 LDLIBS =  -lnotcurses++ -lnotcurses -lnotcurses-core
+TARGET = Clock
 
-clock : $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS) $(LDLIBS)
+all: $(TARGET)
 
-Clock.o : Clock.cpp Clock.hpp
-	$(CC) $(CFLAGS) -c Clock.cpp Clock.hpp
+%.o: %.cpp $(DEPS)
+	$(CXX) $(CXXFLAGS) $<
 
-Main.o : Main.cpp Clock.hpp Clock.cpp
-	$(CC) $(CFLAGS) -c Main.cpp
+$(TARGET): $(SRC)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $^ -o $(TARGET) $(LDLIBS)
 
 clean :
-	rm *.o *.gch clock
+	rm *.o *.gch $(TARGET)
