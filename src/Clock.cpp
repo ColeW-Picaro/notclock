@@ -42,7 +42,7 @@ initPlanes() {
           .scaling = NCSCALE_STRETCH,
           .begy = 0,
           .begx = 0,
-          .blitter = NCBLIT_1x1,
+          .blitter = NCBLIT_2x1,
           .flags = NCVISUAL_OPTION_BLEND | NCVISUAL_OPTION_NODEGRADE, };
     initClockPlane ();
     initNumPlanes ();
@@ -165,7 +165,6 @@ getColorInput () {
     std::istringstream converter (color);
     unsigned value;
     converter >> std::hex >> value;
-    inputPlane->
     delete inputPlane;
     return value;
 }
