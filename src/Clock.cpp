@@ -1,7 +1,6 @@
 /*
-** Filename: main.cpp
-** Author: Cole Vohs
-** Description: A simple clock program using notcurses
+** Filename: Clock.cpp
+** Description: Implementation file for Clock.hpp
  */
 #include <cstdlib>
 #include <iostream>
@@ -27,6 +26,10 @@ ncpp::NotCurses* g_n;
 ncpp::Plane* g_clockPlane;
 ncpp::Visual* g_bgImage;
 
+std::string* bgFile;
+
+struct ncvisual_options ncv_opts;
+
 // Initialize global nc variables
 // n - the nc instance
 // clockPlane - the plane holding the clock
@@ -34,6 +37,13 @@ ncpp::Visual* g_bgImage;
 // g_planes - std::vector holding the clock planes
 void
 initPlanes() {
+    ncv_opts =
+        { .n = g_n->get_stdplane ()->to_ncplane (),
+          .scaling = NCSCALE_STRETCH,
+          .begy = 0,
+          .begx = 0,
+          .blitter = NCBLIT_1x1,
+          .flags = NCVISUAL_OPTION_BLEND | NCVISUAL_OPTION_NODEGRADE, };
     initClockPlane ();
     initNumPlanes ();
 }
@@ -82,19 +92,9 @@ initNumPlanes () {
 }
 
 void
-initBg (char* file) {
-    g_bgImage = new ncpp::Visual (file);
-    ncpp::Plane* stdplane = g_n->get_stdplane ();
-    struct ncvisual_options ncv_opts =
-        { .n = stdplane->to_ncplane(),
-          .scaling = NCSCALE_STRETCH,
-          .begy = 0,
-          .begx = 0,
-          .blitter = NCBLIT_1x1,
-          .flags = NCVISUAL_OPTION_BLEND | NCVISUAL_OPTION_NODEGRADE, };
+initBg () {
+    g_bgImage = new ncpp::Visual (bgFile->c_str());
     g_bgImage->render (&ncv_opts);
-    //ncv_opts.n = g_clockPlane->to_ncplane ();
-    //bgImage->render (&ncv_opts);
 }
 
 // Returns current time as a std::string
@@ -109,7 +109,8 @@ std::string getTimeString() {
 
 // Call ncplane_putstr_yx on each of the planes and strings
 // planes and strings are the same size
-int putStringsOnPlanes (const std::vector<std::string>& strings) {
+int
+putStringsOnPlanes (const std::vector<std::string>& strings) {
     if (g_planes->size () != strings.size ()) return 0;
     for (int i = 0; auto p : *g_planes) {
         p->putstr (0, 0, strings[i].c_str());
@@ -132,8 +133,15 @@ processInput () {
     g_n->getc(&time, NULL, &in);
     if (in.id == 'c') {
         setFgPlanes(getColorInput ());
+    } else if (in.id == 'e') {
+        g_n->get_stdplane()->erase();
+    } else if (in.id == 'b') {
+        if (g_bgImage != nullptr) {
+            g_bgImage->render (&ncv_opts);
+        }
     }
 }
+
 
 // Make a plane
 // Get input from the plane
@@ -157,6 +165,7 @@ getColorInput () {
     std::istringstream converter (color);
     unsigned value;
     converter >> std::hex >> value;
+    inputPlane->
     delete inputPlane;
     return value;
 }

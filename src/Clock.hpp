@@ -1,3 +1,8 @@
+/*
+** Filename: Clock.hpp
+** Author: Cole Vohs
+** Description: Definitions of global variables and functions
+*/
 #ifndef __CLOCK_H_
 #define __CLOCK_H_
 
@@ -39,16 +44,16 @@ const std::string nine = "██████\n██  ██\n██████
 const std::string colon = "██\n\n\n\n██";
 
 inline std::map<char, std::string> g_numMap = { { '0', zero},
-                                                       { '1', one },
-                                                       { '2', two },
-                                                       { '3', three },
-                                                       { '4', four },
-                                                       { '5', five },
-                                                       { '6', six },
-                                                       { '7', seven },
-                                                       { '8', eight },
-                                                       { '9', nine },
-                                                       { ':', colon}};
+                                                { '1', one },
+                                                { '2', two },
+                                                { '3', three },
+                                                { '4', four },
+                                                { '5', five },
+                                                { '6', six },
+                                                { '7', seven },
+                                                { '8', eight },
+                                                { '9', nine },
+                                                { ':', colon}};
 
 // Constants specific for the clock
 inline extern const long NSEC = 200000000;
@@ -69,6 +74,8 @@ extern ncpp::Visual* g_bgImage;
 
 inline std::vector<ncpp::Plane*>* g_planes = new std::vector<ncpp::Plane*> ();
 
+extern std::string* bgFile;
+
 // Function prototypes
 extern void
 initPlanes ();
@@ -80,7 +87,7 @@ extern void
 initNumPlanes ();
 
 extern void
-initBg (char* file);
+initBg ();
 
 extern std::string
 getTimeString ();

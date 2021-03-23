@@ -7,6 +7,7 @@
 #include "Clock.hpp"
 
 extern ncpp::NotCurses* g_n;
+extern std::string* bgFile;
 
 int
 main(int argc, char *argv[]) {
@@ -15,7 +16,9 @@ main(int argc, char *argv[]) {
     // TODO: Resize handler
     initPlanes();
     if (argc == 2) {
-        initBg(argv[1]);
+        bgFile = new std::string(argv[1]);
+        initBg();
+
     }
 
     // Main render loop
